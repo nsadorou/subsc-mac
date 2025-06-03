@@ -11,6 +11,8 @@ struct SubscriptionListView: View {
     @State private var showingAddSheet = false
     @State private var selectedSubscription: Subscription?
     @State private var selection: Set<UUID> = []
+    @State private var lastClickTime: Date?
+    @State private var lastClickedID: UUID?
     
     var body: some View {
         VStack(spacing: 0) {
@@ -71,9 +73,21 @@ struct SubscriptionListView: View {
                     ForEach(subscriptions) { subscription in
                         SubscriptionRow(subscription: subscription)
                             .tag(subscription.id)
-                            .onTapGesture(count: 2) {
-                                // ダブルクリックで詳細表示
-                                selectedSubscription = subscription
+                            .onTapGesture {
+                                let now = Date()
+                                if let lastTime = lastClickTime,
+                                   let lastID = lastClickedID,
+                                   lastID == subscription.id,
+                                   now.timeIntervalSince(lastTime) < 0.5 {
+                                    // ダブルクリックと判定
+                                    selectedSubscription = subscription
+                                    lastClickTime = nil
+                                    lastClickedID = nil
+                                } else {
+                                    // シングルクリック
+                                    lastClickTime = now
+                                    lastClickedID = subscription.id
+                                }
                             }
                             .contextMenu {
                                 Button(action: {
