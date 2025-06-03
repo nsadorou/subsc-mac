@@ -2,7 +2,10 @@ import SwiftUI
 
 struct SubscriptionDetailView: View {
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.managedObjectContext) private var viewContext
     let subscription: Subscription
+    
+    @State private var showingDeleteAlert = false
     
     var nextRenewalDate: Date {
         guard let startDate = subscription.startDate else { return Date() }
@@ -63,6 +66,19 @@ struct SubscriptionDetailView: View {
                 .padding(.horizontal)
                 
                 Spacer()
+                
+                HStack {
+                    Button(action: {
+                        showingDeleteAlert = true
+                    }) {
+                        Label("削除", systemImage: "trash")
+                    }
+                    .buttonStyle(.bordered)
+                    .foregroundColor(.red)
+                    
+                    Spacer()
+                }
+                .padding(.horizontal)
             }
             .padding()
             .navigationTitle("詳細")
@@ -72,6 +88,14 @@ struct SubscriptionDetailView: View {
                         dismiss()
                     }
                 }
+            }
+            .alert("サブスクリプションを削除", isPresented: $showingDeleteAlert) {
+                Button("削除", role: .destructive) {
+                    deleteSubscription()
+                }
+                Button("キャンセル", role: .cancel) {}
+            } message: {
+                Text("\(subscription.serviceName ?? "このサービス")を削除してもよろしいですか？この操作は取り消せません。")
             }
         }
         .frame(minWidth: 500, minHeight: 400)
@@ -83,6 +107,18 @@ struct SubscriptionDetailView: View {
         formatter.timeStyle = .none
         formatter.locale = Locale(identifier: "ja_JP")
         return formatter
+    }
+    
+    private func deleteSubscription() {
+        viewContext.delete(subscription)
+        
+        do {
+            try viewContext.save()
+            dismiss()
+        } catch {
+            let nsError = error as NSError
+            fatalError("Unresolved error \(nsError), \(nsError.userInfo)")
+        }
     }
 }
 

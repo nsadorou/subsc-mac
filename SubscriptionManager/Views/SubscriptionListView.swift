@@ -50,6 +50,21 @@ struct SubscriptionListView: View {
                             .onTapGesture {
                                 selectedSubscription = subscription
                             }
+                            .contextMenu {
+                                Button(action: {
+                                    deleteSubscription(subscription)
+                                }) {
+                                    Label("削除", systemImage: "trash")
+                                }
+                                
+                                Divider()
+                                
+                                Button(action: {
+                                    selectedSubscription = subscription
+                                }) {
+                                    Label("詳細を表示", systemImage: "info.circle")
+                                }
+                            }
                     }
                     .onDelete(perform: deleteSubscriptions)
                 }
@@ -67,6 +82,19 @@ struct SubscriptionListView: View {
     private func deleteSubscriptions(offsets: IndexSet) {
         withAnimation {
             offsets.map { subscriptions[$0] }.forEach(viewContext.delete)
+            
+            do {
+                try viewContext.save()
+            } catch {
+                let nsError = error as NSError
+                fatalError("Unresolved error \(nsError), \(nsError.userInfo)")
+            }
+        }
+    }
+    
+    private func deleteSubscription(_ subscription: Subscription) {
+        withAnimation {
+            viewContext.delete(subscription)
             
             do {
                 try viewContext.save()
