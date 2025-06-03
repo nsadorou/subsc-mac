@@ -11,8 +11,6 @@ struct SubscriptionListView: View {
     @State private var showingAddSheet = false
     @State private var selectedSubscription: Subscription?
     @State private var selection: Set<UUID> = []
-    @State private var lastClickTime: Date?
-    @State private var lastClickedID: UUID?
     
     var body: some View {
         VStack(spacing: 0) {
@@ -29,6 +27,19 @@ struct SubscriptionListView: View {
                 }
                 
                 Spacer()
+                
+                if selection.count == 1 {
+                    Button(action: {
+                        if let id = selection.first,
+                           let subscription = subscriptions.first(where: { $0.id == id }) {
+                            selectedSubscription = subscription
+                        }
+                    }) {
+                        Label("詳細を表示", systemImage: "info.circle")
+                    }
+                    .buttonStyle(.bordered)
+                    .keyboardShortcut(.return, modifiers: [])
+                }
                 
                 if !selection.isEmpty {
                     Button(action: {
@@ -71,7 +82,7 @@ struct SubscriptionListView: View {
             } else {
                 List(selection: $selection) {
                     ForEach(subscriptions) { subscription in
-                        SubscriptionRow(subscription: subscription)
+                        SubscriptionRow(subscription: subscription, selectedSubscription: $selectedSubscription)
                             .tag(subscription.id)
                             .contextMenu {
                                 Button(action: {
@@ -109,20 +120,6 @@ struct SubscriptionListView: View {
         .sheet(item: $selectedSubscription) { subscription in
             SubscriptionDetailView(subscription: subscription)
         }
-        .onChange(of: selection) { newSelection in
-            // 選択が変更された時の処理
-            if let firstID = newSelection.first,
-               firstID == lastClickedID,
-               let lastTime = lastClickTime,
-               Date().timeIntervalSince(lastTime) < 0.5 {
-                // ダブルクリックと判定
-                if let subscription = subscriptions.first(where: { $0.id == firstID }) {
-                    selectedSubscription = subscription
-                }
-            }
-            lastClickTime = Date()
-            lastClickedID = newSelection.first
-        }
     }
     
     private func deleteSubscriptions(offsets: IndexSet) {
@@ -154,6 +151,7 @@ struct SubscriptionListView: View {
 
 struct SubscriptionRow: View {
     let subscription: Subscription
+    @Binding var selectedSubscription: Subscription?
     
     var body: some View {
         HStack {
@@ -176,6 +174,15 @@ struct SubscriptionRow: View {
                     .font(.caption)
                     .foregroundColor(.secondary)
             }
+            
+            Button(action: {
+                selectedSubscription = subscription
+            }) {
+                Image(systemName: "info.circle")
+                    .foregroundColor(.accentColor)
+            }
+            .buttonStyle(.plain)
+            .help("詳細を表示")
         }
         .padding(.vertical, 4)
         .contentShape(Rectangle()) // クリック可能領域を行全体に拡張
