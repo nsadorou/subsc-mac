@@ -73,24 +73,6 @@ struct SubscriptionListView: View {
                     ForEach(subscriptions) { subscription in
                         SubscriptionRow(subscription: subscription)
                             .tag(subscription.id)
-                            .contentShape(Rectangle())
-                            .frame(maxWidth: .infinity)
-                            .onTapGesture {
-                                let now = Date()
-                                if let lastTime = lastClickTime,
-                                   let lastID = lastClickedID,
-                                   lastID == subscription.id,
-                                   now.timeIntervalSince(lastTime) < 0.5 {
-                                    // ダブルクリックと判定
-                                    selectedSubscription = subscription
-                                    lastClickTime = nil
-                                    lastClickedID = nil
-                                } else {
-                                    // シングルクリック
-                                    lastClickTime = now
-                                    lastClickedID = subscription.id
-                                }
-                            }
                             .contextMenu {
                                 Button(action: {
                                     deleteSubscription(subscription)
@@ -126,6 +108,20 @@ struct SubscriptionListView: View {
         }
         .sheet(item: $selectedSubscription) { subscription in
             SubscriptionDetailView(subscription: subscription)
+        }
+        .onChange(of: selection) { newSelection in
+            // 選択が変更された時の処理
+            if let firstID = newSelection.first,
+               firstID == lastClickedID,
+               let lastTime = lastClickTime,
+               Date().timeIntervalSince(lastTime) < 0.5 {
+                // ダブルクリックと判定
+                if let subscription = subscriptions.first(where: { $0.id == firstID }) {
+                    selectedSubscription = subscription
+                }
+            }
+            lastClickTime = Date()
+            lastClickedID = newSelection.first
         }
     }
     
