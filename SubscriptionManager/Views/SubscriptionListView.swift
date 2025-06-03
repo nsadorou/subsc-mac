@@ -10,6 +10,7 @@ struct SubscriptionListView: View {
     
     @State private var showingAddSheet = false
     @State private var selectedSubscription: Subscription?
+    @State private var selection: Set<Subscription> = []
     
     var body: some View {
         VStack(spacing: 0) {
@@ -18,7 +19,27 @@ struct SubscriptionListView: View {
                     .font(.largeTitle)
                     .fontWeight(.bold)
                 
+                if !selection.isEmpty {
+                    Text("\(selection.count)件選択中")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                        .padding(.leading, 8)
+                }
+                
                 Spacer()
+                
+                if !selection.isEmpty {
+                    Button(action: {
+                        for subscription in selection {
+                            deleteSubscription(subscription)
+                        }
+                        selection.removeAll()
+                    }) {
+                        Label("選択項目を削除", systemImage: "trash")
+                    }
+                    .buttonStyle(.bordered)
+                    .foregroundColor(.red)
+                }
                 
                 Button(action: { showingAddSheet = true }) {
                     Label("追加", systemImage: "plus.circle.fill")
@@ -44,10 +65,12 @@ struct SubscriptionListView: View {
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else {
-                List {
+                List(selection: $selection) {
                     ForEach(subscriptions) { subscription in
                         SubscriptionRow(subscription: subscription)
-                            .onTapGesture {
+                            .tag(subscription)
+                            .onTapGesture(count: 2) {
+                                // ダブルクリックで詳細表示
                                 selectedSubscription = subscription
                             }
                             .contextMenu {
@@ -71,10 +94,10 @@ struct SubscriptionListView: View {
                 .listStyle(InsetListStyle())
                 .onDeleteCommand {
                     // Deleteキーが押された時の処理
-                    if let selectedIndex = subscriptions.firstIndex(where: { $0 == selectedSubscription }) {
-                        let indexSet = IndexSet(integer: selectedIndex)
-                        deleteSubscriptions(offsets: indexSet)
+                    for subscription in selection {
+                        deleteSubscription(subscription)
                     }
+                    selection.removeAll()
                 }
             }
         }
