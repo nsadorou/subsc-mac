@@ -69,6 +69,13 @@ struct SubscriptionListView: View {
                     .onDelete(perform: deleteSubscriptions)
                 }
                 .listStyle(InsetListStyle())
+                .onDeleteCommand {
+                    // Deleteキーが押された時の処理
+                    if let selectedIndex = subscriptions.firstIndex(where: { $0 == selectedSubscription }) {
+                        let indexSet = IndexSet(integer: selectedIndex)
+                        deleteSubscriptions(offsets: indexSet)
+                    }
+                }
             }
         }
         .sheet(isPresented: $showingAddSheet) {
