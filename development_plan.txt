@@ -1,0 +1,60 @@
+# macOS サブスクリプション管理アプリ - 開発計画
+
+## 開発フェーズ概要
+
+### Phase 1: 基本構造とデータモデル
+- Phase 1-1: Xcodeプロジェクトの初期セットアップ - macOS App作成、SwiftUI選択、Bundle ID設定、Deployment Target設定
+- Phase 1-2: Core Dataスタックの実装 - Persistenceコンテナ設定、CoreDataManager.swift作成、エラーハンドリング実装
+- Phase 1-3: データモデルの実装 - Subscription.xcdatamodeld作成、Entity定義、Enumの実装、NSManagedObject拡張
+- Phase 1-4: CRUD操作の実装 - Create/Read/Update/Delete機能、フェッチリクエスト、データ検証ロジック
+
+### Phase 2: UI実装
+- Phase 2-1: アプリ基本構造とナビゲーション - ContentView実装、タブビュー構造、画面遷移の設定
+- Phase 2-2: サブスクリプション一覧画面 - ListViewとViewModel実装、ソート機能、月額/年額切替、合計金額表示
+- Phase 2-3: 追加・編集画面 - フォームUI実装、入力検証、DatePicker、通貨選択UI、支払い方法選択
+- Phase 2-4: 詳細表示画面 - 情報表示レイアウト、編集・削除ボタン、次回更新日計算・表示
+
+### Phase 3: 通知機能
+- Phase 3-1: 通知権限とセットアップ - UserNotifications設定、権限リクエストUI、App Delegateでの初期化
+- Phase 3-2: 通知スケジューリング - NotificationManager実装、更新日計算ロジック、通知コンテンツ作成
+- Phase 3-3: 通知設定UI - タイミング選択UI（複数選択対応）、通知時間設定、プレビュー機能
+- Phase 3-4: バックグラウンド処理 - Background App Refresh設定、通知の定期更新処理、ログ・デバッグ機能
+
+### Phase 4: 為替レート機能
+- Phase 4-1: 為替レートAPI連携 - ExchangeRate-API実装、URLSession設定、JSONデコーディング
+- Phase 4-2: 通貨換算機能 - リアルタイム換算ロジック、キャッシュ実装、エラーハンドリング
+- Phase 4-3: オフライン対応 - 最新レートの保存、オフライン時の動作、再接続時の更新
+- Phase 4-4: レート履歴管理 - 履歴データモデル、履歴表示UI、古いデータのクリーンアップ
+
+### Phase 5: 追加機能・改善
+- Phase 5-1: 検索・フィルタ機能 - 検索バー実装、Predicateロジック、リアルタイムフィルタリング
+- Phase 5-2: データエクスポート - CSV形式でのエクスポート、ファイル保存ダイアログ、フォーマット設定
+- Phase 5-3: UI/UX改善 - ダークモード対応、アニメーション追加、アクセシビリティ対応、キーボードショートカット
+- Phase 5-4: 最適化とテスト - パフォーマンス計測、メモリリーク確認、Unit/UIテスト作成、クラッシュ対策
+
+### リリース準備
+- リリース準備: App Sandbox設定、Entitlements設定、アプリアイコン作成、スクリーンショット準備
+- App Store申請: Developer ID証明書、App Store Connect設定、レビューガイドライン確認、申請書類準備
+
+## 技術的な実装方針
+
+### アーキテクチャ
+- MVVM (Model-View-ViewModel) パターン
+- SwiftUI + Combine
+- Core Data for persistence
+- Deployment Target: macOS 13.0+
+
+### セキュリティ
+- Keychain Services for payment info encryption
+- App Sandbox enabled
+- SSL/TLS for all API communications
+
+### パフォーマンス
+- NSFetchedResultsController for large datasets
+- Lazy loading for views
+- Background queue for heavy operations
+
+### エラーハンドリング
+- Result type for async operations
+- User-friendly error messages
+- Crash reporting integration
