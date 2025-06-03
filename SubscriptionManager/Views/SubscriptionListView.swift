@@ -10,7 +10,7 @@ struct SubscriptionListView: View {
     
     @State private var showingAddSheet = false
     @State private var selectedSubscription: Subscription?
-    @State private var selection: Set<Subscription> = []
+    @State private var selection: Set<UUID> = []
     
     var body: some View {
         VStack(spacing: 0) {
@@ -30,8 +30,10 @@ struct SubscriptionListView: View {
                 
                 if !selection.isEmpty {
                     Button(action: {
-                        for subscription in selection {
-                            deleteSubscription(subscription)
+                        for id in selection {
+                            if let subscription = subscriptions.first(where: { $0.id == id }) {
+                                deleteSubscription(subscription)
+                            }
                         }
                         selection.removeAll()
                     }) {
@@ -68,7 +70,7 @@ struct SubscriptionListView: View {
                 List(selection: $selection) {
                     ForEach(subscriptions) { subscription in
                         SubscriptionRow(subscription: subscription)
-                            .tag(subscription)
+                            .tag(subscription.id)
                             .onTapGesture(count: 2) {
                                 // ダブルクリックで詳細表示
                                 selectedSubscription = subscription
@@ -94,8 +96,10 @@ struct SubscriptionListView: View {
                 .listStyle(InsetListStyle())
                 .onDeleteCommand {
                     // Deleteキーが押された時の処理
-                    for subscription in selection {
-                        deleteSubscription(subscription)
+                    for id in selection {
+                        if let subscription = subscriptions.first(where: { $0.id == id }) {
+                            deleteSubscription(subscription)
+                        }
                     }
                     selection.removeAll()
                 }
