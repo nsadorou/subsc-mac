@@ -73,6 +73,8 @@ struct SubscriptionListView: View {
                     ForEach(subscriptions) { subscription in
                         SubscriptionRow(subscription: subscription)
                             .tag(subscription.id)
+                            .contentShape(Rectangle())
+                            .frame(maxWidth: .infinity)
                             .onTapGesture {
                                 let now = Date()
                                 if let lastTime = lastClickTime,
@@ -180,6 +182,7 @@ struct SubscriptionRow: View {
             }
         }
         .padding(.vertical, 4)
+        .contentShape(Rectangle()) // クリック可能領域を行全体に拡張
     }
 }
 
