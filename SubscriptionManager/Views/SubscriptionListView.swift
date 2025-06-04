@@ -11,6 +11,7 @@ struct SubscriptionListView: View {
     @State private var showingAddSheet = false
     @State private var selectedSubscription: Subscription?
     @State private var selection: Set<UUID> = []
+    @State private var editingSubscription: Subscription?
     
     var body: some View {
         VStack(spacing: 0) {
@@ -29,6 +30,16 @@ struct SubscriptionListView: View {
                 Spacer()
                 
                 if selection.count == 1 {
+                    Button(action: {
+                        if let id = selection.first,
+                           let subscription = subscriptions.first(where: { $0.id == id }) {
+                            editingSubscription = subscription
+                        }
+                    }) {
+                        Label("編集", systemImage: "pencil")
+                    }
+                    .buttonStyle(.bordered)
+                    
                     Button(action: {
                         if let id = selection.first,
                            let subscription = subscriptions.first(where: { $0.id == id }) {
@@ -86,17 +97,23 @@ struct SubscriptionListView: View {
                             .tag(subscription.id)
                             .contextMenu {
                                 Button(action: {
-                                    deleteSubscription(subscription)
+                                    editingSubscription = subscription
                                 }) {
-                                    Label("削除", systemImage: "trash")
+                                    Label("編集", systemImage: "pencil")
                                 }
-                                
-                                Divider()
                                 
                                 Button(action: {
                                     selectedSubscription = subscription
                                 }) {
                                     Label("詳細を表示", systemImage: "info.circle")
+                                }
+                                
+                                Divider()
+                                
+                                Button(action: {
+                                    deleteSubscription(subscription)
+                                }) {
+                                    Label("削除", systemImage: "trash")
                                 }
                             }
                     }
@@ -119,6 +136,9 @@ struct SubscriptionListView: View {
         }
         .sheet(item: $selectedSubscription) { subscription in
             SubscriptionDetailView(subscription: subscription)
+        }
+        .sheet(item: $editingSubscription) { subscription in
+            AddEditSubscriptionView(subscription: subscription)
         }
     }
     
