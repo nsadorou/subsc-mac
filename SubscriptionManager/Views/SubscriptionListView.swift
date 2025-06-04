@@ -13,6 +13,29 @@ struct SubscriptionListView: View {
     @State private var selection: Set<UUID> = []
     @State private var editingSubscription: Subscription?
     
+    // 合計金額の計算
+    var monthlyTotal: Int {
+        subscriptions
+            .filter { $0.cycle == 0 && $0.isActive }
+            .compactMap { $0.amount?.intValue }
+            .reduce(0, +)
+    }
+    
+    var yearlyTotal: Int {
+        subscriptions
+            .filter { $0.cycle == 1 && $0.isActive }
+            .compactMap { $0.amount?.intValue }
+            .reduce(0, +)
+    }
+    
+    var totalPerMonth: Int {
+        monthlyTotal + (yearlyTotal / 12)
+    }
+    
+    var totalPerYear: Int {
+        (monthlyTotal * 12) + yearlyTotal
+    }
+    
     var body: some View {
         VStack(spacing: 0) {
             HStack {
@@ -91,6 +114,56 @@ struct SubscriptionListView: View {
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else {
+                // 合計金額表示
+                HStack(spacing: 30) {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("月額合計")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                        Text("¥\(monthlyTotal.formatted(.number))")
+                            .font(.title2)
+                            .fontWeight(.semibold)
+                    }
+                    
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("年額合計")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                        Text("¥\(yearlyTotal.formatted(.number))")
+                            .font(.title2)
+                            .fontWeight(.semibold)
+                    }
+                    
+                    Divider()
+                        .frame(height: 40)
+                    
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("月あたり総額")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                        Text("¥\(totalPerMonth.formatted(.number))")
+                            .font(.title2)
+                            .fontWeight(.bold)
+                            .foregroundColor(.accentColor)
+                    }
+                    
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("年あたり総額")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                        Text("¥\(totalPerYear.formatted(.number))")
+                            .font(.title2)
+                            .fontWeight(.bold)
+                            .foregroundColor(.accentColor)
+                    }
+                    
+                    Spacer()
+                }
+                .padding()
+                .background(Color(NSColor.controlBackgroundColor))
+                
+                Divider()
+                
                 List(selection: $selection) {
                     ForEach(subscriptions) { subscription in
                         SubscriptionRow(subscription: subscription, selectedSubscription: $selectedSubscription)
@@ -187,7 +260,7 @@ struct SubscriptionRow: View {
             Spacer()
             
             VStack(alignment: .trailing, spacing: 4) {
-                Text("¥\(subscription.amount?.intValue ?? 0)")
+                Text("¥\((subscription.amount?.intValue ?? 0).formatted(.number))")
                     .font(.headline)
                 
                 Text(subscription.cycle == 0 ? "月額" : "年額")
