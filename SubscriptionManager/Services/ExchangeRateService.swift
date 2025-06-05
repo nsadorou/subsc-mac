@@ -29,10 +29,21 @@ enum ExchangeRateError: LocalizedError {
 }
 
 struct ExchangeRateResponse: Codable {
-    let success: Bool
     let base: String
     let date: String
     let rates: [String: Double]
+    
+    // 無視するフィールド
+    private let provider: String?
+    private let terms: String?
+    private let timeLastUpdated: Int?
+    private let warningUpgradeToV6: String?
+    
+    private enum CodingKeys: String, CodingKey {
+        case base, date, rates, provider, terms
+        case timeLastUpdated = "time_last_updated"
+        case warningUpgradeToV6 = "WARNING_UPGRADE_TO_V6"
+    }
 }
 
 struct CachedExchangeRate: Codable {
@@ -54,7 +65,7 @@ class ExchangeRateService: ObservableObject {
     @Published var isLoading = false
     @Published var error: ExchangeRateError?
     
-    private let baseURL = "https://api.fxratesapi.com/latest"
+    private let baseURL = "https://api.exchangerate-api.com/v4/latest"
     private let cacheKey = "com.subscriptionmanager.exchangeRateCache"
     private var cancellables = Set<AnyCancellable>()
     
@@ -122,20 +133,33 @@ class ExchangeRateService: ObservableObject {
     // MARK: - Private Methods
     
     private func fetchFromAPI(baseCurrency: String, targetCurrency: String) -> AnyPublisher<Double, ExchangeRateError> {
-        guard let url = URL(string: "\(baseURL)/\(baseCurrency)") else {
+        let urlString = "\(baseURL)/\(baseCurrency)"
+        guard let url = URL(string: urlString) else {
+            AppLogger.shared.error("Failed to create URL: \(urlString)")
             return Fail(error: ExchangeRateError.networkError)
                 .eraseToAnyPublisher()
         }
         
+        AppLogger.shared.info("Fetching exchange rate from: \(urlString)")
+        
         return URLSession.shared.dataTaskPublisher(for: url)
-            .map(\.data)
+            .map { data, response in
+                AppLogger.shared.info("Received response from API. Data size: \(data.count) bytes")
+                if let httpResponse = response as? HTTPURLResponse {
+                    AppLogger.shared.info("HTTP Status: \(httpResponse.statusCode)")
+                }
+                // レスポンスの最初の部分をログに出力
+                if let responseString = String(data: data.prefix(200), encoding: .utf8) {
+                    AppLogger.shared.info("Response preview: \(responseString)")
+                }
+                return data
+            }
             .decode(type: ExchangeRateResponse.self, decoder: JSONDecoder())
             .tryMap { response in
-                guard response.success else {
-                    throw ExchangeRateError.apiError("API returned error status")
-                }
+                AppLogger.shared.info("Successfully decoded response. Base: \(response.base), Available rates: \(response.rates.keys.count)")
                 
                 guard let rate = response.rates[targetCurrency] else {
+                    AppLogger.shared.error("Target currency \(targetCurrency) not found in rates")
                     throw ExchangeRateError.invalidResponse
                 }
                 
@@ -150,6 +174,7 @@ class ExchangeRateService: ObservableObject {
                     return error as! ExchangeRateError
                 }
                 AppLogger.shared.error("Exchange rate API error: \(error.localizedDescription)")
+                AppLogger.shared.error("Error type: \(type(of: error))")
                 return ExchangeRateError.networkError
             }
             .eraseToAnyPublisher()
