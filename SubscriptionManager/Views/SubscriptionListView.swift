@@ -9,23 +9,34 @@ struct SubscriptionListView: View {
     private var subscriptions: FetchedResults<Subscription>
     
     @State private var showingAddSheet = false
-    @State private var selectedSubscription: Subscription?
     @State private var selection: Set<UUID> = []
     @State private var editingSubscription: Subscription?
     
-    // 合計金額の計算
+    // 合計金額の計算（為替レート考慮）
     var monthlyTotal: Int {
         subscriptions
             .filter { $0.cycle == 0 && $0.isActive }
-            .compactMap { $0.amount?.intValue }
-            .reduce(0, +)
+            .reduce(0) { total, subscription in
+                let amount = subscription.amount?.doubleValue ?? 0
+                if subscription.currency == "USD", let rate = subscription.exchangeRate?.doubleValue {
+                    return total + Int(amount * rate)
+                } else {
+                    return total + Int(amount)
+                }
+            }
     }
     
     var yearlyTotal: Int {
         subscriptions
             .filter { $0.cycle == 1 && $0.isActive }
-            .compactMap { $0.amount?.intValue }
-            .reduce(0, +)
+            .reduce(0) { total, subscription in
+                let amount = subscription.amount?.doubleValue ?? 0
+                if subscription.currency == "USD", let rate = subscription.exchangeRate?.doubleValue {
+                    return total + Int(amount * rate)
+                } else {
+                    return total + Int(amount)
+                }
+            }
     }
     
     var totalPerMonth: Int {
@@ -60,16 +71,6 @@ struct SubscriptionListView: View {
                         }
                     }) {
                         Label("編集", systemImage: "pencil")
-                    }
-                    .buttonStyle(.bordered)
-                    
-                    Button(action: {
-                        if let id = selection.first,
-                           let subscription = subscriptions.first(where: { $0.id == id }) {
-                            selectedSubscription = subscription
-                        }
-                    }) {
-                        Label("詳細を表示", systemImage: "info.circle")
                     }
                     .buttonStyle(.bordered)
                     .keyboardShortcut(.return, modifiers: [])
@@ -166,19 +167,13 @@ struct SubscriptionListView: View {
                 
                 List(selection: $selection) {
                     ForEach(subscriptions) { subscription in
-                        SubscriptionRow(subscription: subscription, selectedSubscription: $selectedSubscription)
+                        SubscriptionRow(subscription: subscription, editingSubscription: $editingSubscription)
                             .tag(subscription.id)
                             .contextMenu {
                                 Button(action: {
                                     editingSubscription = subscription
                                 }) {
                                     Label("編集", systemImage: "pencil")
-                                }
-                                
-                                Button(action: {
-                                    selectedSubscription = subscription
-                                }) {
-                                    Label("詳細を表示", systemImage: "info.circle")
                                 }
                                 
                                 Divider()
@@ -206,9 +201,6 @@ struct SubscriptionListView: View {
         }
         .sheet(isPresented: $showingAddSheet) {
             AddEditSubscriptionView()
-        }
-        .sheet(item: $selectedSubscription) { subscription in
-            SubscriptionDetailView(subscription: subscription)
         }
         .sheet(item: $editingSubscription) { subscription in
             AddEditSubscriptionView(subscription: subscription)
@@ -244,41 +236,195 @@ struct SubscriptionListView: View {
 
 struct SubscriptionRow: View {
     let subscription: Subscription
-    @Binding var selectedSubscription: Subscription?
+    @Binding var editingSubscription: Subscription?
+    @State private var isExpanded = false
+    
+    var nextRenewalDate: Date? {
+        guard let startDate = subscription.startDate else { return nil }
+        
+        let calendar = Calendar.current
+        var dateComponents = DateComponents()
+        
+        if subscription.cycle == 0 { // monthly
+            dateComponents.month = 1
+        } else { // yearly
+            dateComponents.year = 1
+        }
+        
+        var nextDate = startDate
+        while nextDate <= Date() {
+            nextDate = calendar.date(byAdding: dateComponents, to: nextDate) ?? nextDate
+        }
+        
+        return nextDate
+    }
+    
+    var daysUntilRenewal: Int? {
+        guard let nextDate = nextRenewalDate else { return nil }
+        let calendar = Calendar.current
+        let components = calendar.dateComponents([.day], from: Date(), to: nextDate)
+        return components.day
+    }
     
     var body: some View {
-        HStack {
-            VStack(alignment: .leading, spacing: 4) {
-                Text(subscription.serviceName ?? "Unknown")
-                    .font(.headline)
+        VStack(spacing: 0) {
+            HStack(spacing: 12) {
+                // サービス情報
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(subscription.serviceName ?? "Unknown")
+                        .font(.headline)
+                    
+                    HStack(spacing: 8) {
+                        Label(subscription.paymentMethod ?? "Unknown", systemImage: "creditcard")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                        
+                        if let timings = subscription.notificationTimings, !timings.isEmpty {
+                            Label("\(timings.count)件の通知", systemImage: "bell.fill")
+                                .font(.caption)
+                                .foregroundColor(.blue)
+                        }
+                    }
+                }
                 
-                Text(subscription.paymentMethod ?? "Unknown")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-            }
-            
-            Spacer()
-            
-            VStack(alignment: .trailing, spacing: 4) {
-                Text("¥\((subscription.amount?.intValue ?? 0).formatted(.number))")
-                    .font(.headline)
+                Spacer()
                 
-                Text(subscription.cycle == 0 ? "月額" : "年額")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
+                // 次回更新日
+                if let days = daysUntilRenewal {
+                    VStack(alignment: .center, spacing: 2) {
+                        Text("\(days)日後")
+                            .font(.caption)
+                            .fontWeight(.medium)
+                            .foregroundColor(days <= 7 ? .orange : .secondary)
+                        
+                        if let date = nextRenewalDate {
+                            Text(date, style: .date)
+                                .font(.caption2)
+                                .foregroundColor(.secondary)
+                        }
+                    }
+                }
+                
+                // 金額情報
+                VStack(alignment: .trailing, spacing: 4) {
+                    if subscription.currency == "USD", let rate = subscription.exchangeRate?.doubleValue {
+                        let usdAmount = subscription.amount?.doubleValue ?? 0
+                        let jpyAmount = usdAmount * rate
+                        
+                        VStack(alignment: .trailing, spacing: 2) {
+                            Text(CurrencyFormatter.shared.format(amount: usdAmount, currency: "USD"))
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                            Text(CurrencyFormatter.shared.format(amount: jpyAmount, currency: "JPY"))
+                                .font(.headline)
+                                .fontWeight(.semibold)
+                            Text("@¥\(CurrencyFormatter.shared.formatExchangeRate(rate))")
+                                .font(.caption2)
+                                .foregroundColor(.secondary)
+                        }
+                    } else {
+                        let amount = subscription.amount?.doubleValue ?? 0
+                        Text(CurrencyFormatter.shared.format(amount: amount, currency: subscription.currency ?? "JPY"))
+                            .font(.headline)
+                            .fontWeight(.semibold)
+                    }
+                    
+                    Text(subscription.cycle == 0 ? "月額" : "年額")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+                
+                // 展開/折りたたみボタン
+                Button(action: {
+                    withAnimation(.easeInOut(duration: 0.2)) {
+                        isExpanded.toggle()
+                    }
+                }) {
+                    Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
+                        .foregroundColor(.secondary)
+                        .font(.caption)
+                }
+                .buttonStyle(.plain)
             }
+            .padding(.vertical, 8)
+            .padding(.horizontal, 4)
             
-            Button(action: {
-                selectedSubscription = subscription
-            }) {
-                Image(systemName: "info.circle")
-                    .foregroundColor(.accentColor)
+            // 展開時の詳細情報
+            if isExpanded {
+                VStack(alignment: .leading, spacing: 8) {
+                    Divider()
+                    
+                    HStack(spacing: 20) {
+                        // 契約開始日
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("契約開始日")
+                                .font(.caption2)
+                                .foregroundColor(.secondary)
+                            Text(subscription.startDate ?? Date(), style: .date)
+                                .font(.caption)
+                        }
+                        
+                        // 通知設定
+                        if let timings = subscription.notificationTimings, !timings.isEmpty {
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("通知タイミング")
+                                    .font(.caption2)
+                                    .foregroundColor(.secondary)
+                                HStack(spacing: 4) {
+                                    ForEach(timings.sorted(), id: \.self) { timing in
+                                        Text(notificationTimingText(timing))
+                                            .font(.caption)
+                                            .padding(.horizontal, 6)
+                                            .padding(.vertical, 2)
+                                            .background(Color.blue.opacity(0.1))
+                                            .cornerRadius(4)
+                                    }
+                                }
+                            }
+                        }
+                        
+                        Spacer()
+                        
+                        // アクションボタン
+                        HStack(spacing: 8) {
+                            Button(action: {
+                                editingSubscription = subscription
+                            }) {
+                                Label("編集", systemImage: "pencil")
+                                    .font(.caption)
+                            }
+                            .buttonStyle(.bordered)
+                        }
+                    }
+                    
+                    // 備考
+                    if let notes = subscription.notes, !notes.isEmpty {
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("備考")
+                                .font(.caption2)
+                                .foregroundColor(.secondary)
+                            Text(notes)
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                                .lineLimit(2)
+                        }
+                    }
+                }
+                .padding(.horizontal, 4)
+                .padding(.bottom, 8)
             }
-            .buttonStyle(.plain)
-            .help("詳細を表示")
         }
-        .padding(.vertical, 4)
-        .contentShape(Rectangle()) // クリック可能領域を行全体に拡張
+        .contentShape(Rectangle())
+    }
+    
+    private func notificationTimingText(_ timing: Int) -> String {
+        switch timing {
+        case 0: return "1日前"
+        case 1: return "3日前"
+        case 2: return "1週間前"
+        case 3: return "2週間前"
+        default: return ""
+        }
     }
 }
 

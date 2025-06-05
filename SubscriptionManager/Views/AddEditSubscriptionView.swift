@@ -1,8 +1,11 @@
 import SwiftUI
+import UserNotifications
 
 struct AddEditSubscriptionView: View {
     @Environment(\.managedObjectContext) private var viewContext
     @Environment(\.dismiss) private var dismiss
+    @EnvironmentObject var notificationManager: NotificationManager
+    @ObservedObject private var exchangeRateService = ExchangeRateService.shared
     
     @State private var serviceName = ""
     @State private var amount = ""
@@ -11,6 +14,12 @@ struct AddEditSubscriptionView: View {
     @State private var notes = ""
     @State private var startDate = Date()
     @State private var cycle = 0
+    @State private var selectedNotificationTimings: Set<Int> = []
+    @State private var notificationTime = Date()
+    @State private var exchangeRate: Double?
+    @State private var convertedAmount: Double?
+    @State private var showingExchangeError = false
+    @State private var exchangeErrorMessage = ""
     
     let subscription: Subscription?
     let isEditMode: Bool
@@ -18,6 +27,12 @@ struct AddEditSubscriptionView: View {
     let currencies = ["JPY", "USD"]
     let paymentMethods = ["クレジットカード", "デビットカード", "銀行振替", "PayPal", "その他"]
     let cycles = ["月額", "年額"]
+    let notificationTimingOptions = [
+        (0, "1日前"),
+        (1, "3日前"),
+        (2, "1週間前"),
+        (3, "2週間前")
+    ]
     
     init(subscription: Subscription? = nil) {
         self.subscription = subscription
@@ -47,25 +62,89 @@ struct AddEditSubscriptionView: View {
                     }
                     
                     // 金額と通貨
-                    HStack(spacing: 16) {
-                        VStack(alignment: .leading, spacing: 8) {
-                            Text("金額")
-                                .font(.headline)
-                            TextField("", text: $amount)
-                                .textFieldStyle(.roundedBorder)
-                        }
-                        .frame(maxWidth: .infinity)
-                        
-                        VStack(alignment: .leading, spacing: 8) {
-                            Text("通貨")
-                                .font(.headline)
-                            Picker("", selection: $currency) {
-                                ForEach(currencies, id: \.self) { currency in
-                                    Text(currency)
+                    VStack(alignment: .leading, spacing: 12) {
+                        HStack(spacing: 16) {
+                            VStack(alignment: .leading, spacing: 8) {
+                                Text("金額")
+                                    .font(.headline)
+                                TextField("", text: $amount)
+                                    .textFieldStyle(.roundedBorder)
+                                    .onChange(of: amount) { _, newValue in
+                                        updateExchangeRate()
+                                    }
+                            }
+                            .frame(maxWidth: .infinity)
+                            
+                            VStack(alignment: .leading, spacing: 8) {
+                                Text("通貨")
+                                    .font(.headline)
+                                Picker("", selection: $currency) {
+                                    ForEach(currencies, id: \.self) { currency in
+                                        Text(currency)
+                                    }
+                                }
+                                .pickerStyle(.segmented)
+                                .labelsHidden()
+                                .onChange(of: currency) { _, newValue in
+                                    updateExchangeRate()
                                 }
                             }
-                            .pickerStyle(.segmented)
-                            .labelsHidden()
+                        }
+                        
+                        // 換算表示
+                        if currency == "USD", let rate = exchangeRate, let converted = convertedAmount {
+                            HStack {
+                                Image(systemName: "arrow.triangle.2.circlepath")
+                                    .foregroundColor(.blue)
+                                    .font(.caption)
+                                
+                                Text("日本円換算: ")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                                + Text(CurrencyFormatter.shared.format(amount: converted, currency: "JPY"))
+                                    .font(.caption)
+                                    .fontWeight(.medium)
+                                
+                                Text("(@¥\(CurrencyFormatter.shared.formatExchangeRate(rate)))")
+                                    .font(.caption2)
+                                    .foregroundColor(.secondary)
+                                
+                                Spacer()
+                                
+                                if exchangeRateService.isLoading {
+                                    ProgressView()
+                                        .scaleEffect(0.5)
+                                }
+                            }
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 8)
+                            .background(Color.blue.opacity(0.1))
+                            .cornerRadius(8)
+                        }
+                        
+                        // エラー表示
+                        if showingExchangeError {
+                            HStack {
+                                Image(systemName: "exclamationmark.triangle")
+                                    .foregroundColor(.orange)
+                                    .font(.caption)
+                                
+                                Text(exchangeErrorMessage)
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                                
+                                Spacer()
+                                
+                                Button("再試行") {
+                                    updateExchangeRate()
+                                }
+                                .font(.caption)
+                                .buttonStyle(.bordered)
+                            }
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 8)
+                            .background(Color.orange.opacity(0.1))
+                            .cornerRadius(8)
                         }
                     }
                     
@@ -102,6 +181,69 @@ struct AddEditSubscriptionView: View {
                         }
                         .pickerStyle(.segmented)
                         .labelsHidden()
+                    }
+                    
+                    // 通知設定
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("通知設定")
+                            .font(.headline)
+                        
+                        if notificationManager.notificationPermissionStatus == .authorized {
+                            VStack(alignment: .leading, spacing: 12) {
+                                Text("通知タイミング（複数選択可）")
+                                    .font(.subheadline)
+                                    .foregroundColor(.secondary)
+                                
+                                ForEach(notificationTimingOptions, id: \.0) { timing in
+                                    Toggle(timing.1, isOn: Binding(
+                                        get: { selectedNotificationTimings.contains(timing.0) },
+                                        set: { isSelected in
+                                            if isSelected {
+                                                selectedNotificationTimings.insert(timing.0)
+                                            } else {
+                                                selectedNotificationTimings.remove(timing.0)
+                                            }
+                                        }
+                                    ))
+                                }
+                                
+                                if !selectedNotificationTimings.isEmpty {
+                                    HStack {
+                                        Text("通知時刻")
+                                            .font(.subheadline)
+                                            .foregroundColor(.secondary)
+                                        
+                                        DatePicker("", selection: $notificationTime, displayedComponents: .hourAndMinute)
+                                            .datePickerStyle(.field)
+                                            .labelsHidden()
+                                            .frame(width: 100)
+                                        
+                                        Spacer()
+                                        
+                                        Button("プレビュー") {
+                                            previewNotification()
+                                        }
+                                        .buttonStyle(.bordered)
+                                        .disabled(serviceName.isEmpty || amount.isEmpty)
+                                    }
+                                    .padding(.top, 8)
+                                }
+                            }
+                            .padding()
+                            .background(Color(NSColor.controlBackgroundColor))
+                            .cornerRadius(8)
+                        } else {
+                            HStack {
+                                Image(systemName: "bell.slash")
+                                    .foregroundColor(.orange)
+                                Text("通知を有効にすると、更新前に通知を受け取れます")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                            }
+                            .padding()
+                            .background(Color(NSColor.controlBackgroundColor))
+                            .cornerRadius(8)
+                        }
                     }
                     
                     // 備考
@@ -152,6 +294,24 @@ struct AddEditSubscriptionView: View {
                 notes = subscription.notes ?? ""
                 startDate = subscription.startDate ?? Date()
                 cycle = Int(subscription.cycle)
+                
+                if let timings = subscription.notificationTimings {
+                    selectedNotificationTimings = Set(timings)
+                }
+                if let time = subscription.notificationTime {
+                    notificationTime = time
+                }
+                
+                // 既存の為替レートを読み込み
+                if let rate = subscription.exchangeRate {
+                    exchangeRate = rate.doubleValue
+                    updateConvertedAmount()
+                }
+            }
+            
+            // 初回読み込み時に為替レートを取得
+            if currency == "USD" && !amount.isEmpty {
+                updateExchangeRate()
             }
         }
     }
@@ -176,14 +336,95 @@ struct AddEditSubscriptionView: View {
         subscriptionToSave.startDate = startDate
         subscriptionToSave.cycle = Int16(cycle)
         subscriptionToSave.updatedAt = Date()
+        subscriptionToSave.notificationTimings = Array(selectedNotificationTimings)
+        subscriptionToSave.notificationTime = notificationTime
+        
+        // 為替レートを保存（USD入力時のみ）
+        if currency == "USD", let rate = exchangeRate {
+            subscriptionToSave.exchangeRate = NSDecimalNumber(value: rate)
+        } else {
+            subscriptionToSave.exchangeRate = nil
+        }
         
         do {
             try viewContext.save()
+            
+            // 通知をスケジュール
+            if !selectedNotificationTimings.isEmpty {
+                notificationManager.scheduleNotification(for: subscriptionToSave)
+            } else {
+                notificationManager.removeAllNotifications(for: subscriptionToSave)
+            }
+            
             dismiss()
         } catch {
             let nsError = error as NSError
             fatalError("Unresolved error \(nsError), \(nsError.userInfo)")
         }
+    }
+    
+    private func previewNotification() {
+        guard notificationManager.notificationPermissionStatus == .authorized else { return }
+        
+        let content = UNMutableNotificationContent()
+        content.title = "サブスクリプション更新のお知らせ（プレビュー）"
+        content.body = "\(serviceName)が明日に更新されます。金額: \(formatPreviewAmount())"
+        content.sound = .default
+        
+        let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 2, repeats: false)
+        let request = UNNotificationRequest(identifier: "preview_notification", content: content, trigger: trigger)
+        
+        UNUserNotificationCenter.current().add(request) { error in
+            if let error = error {
+                print("Error scheduling preview notification: \(error)")
+            }
+        }
+    }
+    
+    private func formatPreviewAmount() -> String {
+        if let amountValue = Double(amount) {
+            return CurrencyFormatter.shared.formatWithRate(
+                amount: amountValue,
+                currency: currency,
+                rate: currency == "USD" ? exchangeRate : nil
+            )
+        }
+        return "\(amount) \(currency)"
+    }
+    
+    private func updateExchangeRate() {
+        // リセット
+        showingExchangeError = false
+        convertedAmount = nil
+        
+        // USD以外または金額が空の場合はスキップ
+        guard currency == "USD", let amountValue = Double(amount), amountValue > 0 else {
+            exchangeRate = nil
+            return
+        }
+        
+        // 為替レートを取得
+        exchangeRateService.getExchangeRate(from: "USD", to: "JPY") { result in
+            DispatchQueue.main.async {
+                switch result {
+                case .success(let rate):
+                    exchangeRate = rate
+                    updateConvertedAmount()
+                    showingExchangeError = false
+                case .failure(let error):
+                    showingExchangeError = true
+                    exchangeErrorMessage = error.localizedDescription
+                }
+            }
+        }
+    }
+    
+    private func updateConvertedAmount() {
+        guard let rate = exchangeRate, let amountValue = Double(amount) else {
+            convertedAmount = nil
+            return
+        }
+        convertedAmount = amountValue * rate
     }
 }
 

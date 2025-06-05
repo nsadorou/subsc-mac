@@ -14,6 +14,14 @@
 		8BAA07472DEF2D5A00D71A2C /* NotificationTiming.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8BAA07442DEF2D5A00D71A2C /* NotificationTiming.swift */; };
 		8BAA07482DEF2D5A00D71A2C /* SubscriptionCycle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8BAA07452DEF2D5A00D71A2C /* SubscriptionCycle.swift */; };
 		8BAA074B2DEF2D7600D71A2C /* CoreDataManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8BAA07492DEF2D7600D71A2C /* CoreDataManager.swift */; };
+		8BAA075F2DF0A07300D71A2C /* AppLogger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8BAA075E2DF0A07200D71A2C /* AppLogger.swift */; };
+		8BAA07612DF0A08600D71A2C /* NotificationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8BAA07602DF0A08600D71A2C /* NotificationManager.swift */; };
+		8BAA07632DF0A0A000D71A2C /* DebugLogView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8BAA07622DF0A0A000D71A2C /* DebugLogView.swift */; };
+		8BAA07652DF0A0AD00D71A2C /* NotificationPermissionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8BAA07642DF0A0AD00D71A2C /* NotificationPermissionView.swift */; };
+		8BAA07672DF0A0B700D71A2C /* NotificationSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8BAA07662DF0A0B700D71A2C /* NotificationSettingsView.swift */; };
+		8BAA07692DF1DD7900D71A2C /* ExchangeRateService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8BAA07682DF1DD7900D71A2C /* ExchangeRateService.swift */; };
+		8BAA076B2DF1DD8E00D71A2C /* ExchangeRateHistoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8BAA076A2DF1DD8E00D71A2C /* ExchangeRateHistoryView.swift */; };
+		8BAA076F2DF1DDE500D71A2C /* CurrencyFormatter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8BAA076D2DF1DDE500D71A2C /* CurrencyFormatter.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -44,6 +52,14 @@
 		8BAA07442DEF2D5A00D71A2C /* NotificationTiming.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationTiming.swift; sourceTree = "<group>"; };
 		8BAA07452DEF2D5A00D71A2C /* SubscriptionCycle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubscriptionCycle.swift; sourceTree = "<group>"; };
 		8BAA07492DEF2D7600D71A2C /* CoreDataManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoreDataManager.swift; sourceTree = "<group>"; };
+		8BAA075E2DF0A07200D71A2C /* AppLogger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppLogger.swift; sourceTree = "<group>"; };
+		8BAA07602DF0A08600D71A2C /* NotificationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationManager.swift; sourceTree = "<group>"; };
+		8BAA07622DF0A0A000D71A2C /* DebugLogView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebugLogView.swift; sourceTree = "<group>"; };
+		8BAA07642DF0A0AD00D71A2C /* NotificationPermissionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationPermissionView.swift; sourceTree = "<group>"; };
+		8BAA07662DF0A0B700D71A2C /* NotificationSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationSettingsView.swift; sourceTree = "<group>"; };
+		8BAA07682DF1DD7900D71A2C /* ExchangeRateService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExchangeRateService.swift; sourceTree = "<group>"; };
+		8BAA076A2DF1DD8E00D71A2C /* ExchangeRateHistoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExchangeRateHistoryView.swift; sourceTree = "<group>"; };
+		8BAA076D2DF1DDE500D71A2C /* CurrencyFormatter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CurrencyFormatter.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -92,6 +108,7 @@
 		8BAA06E12DEF27D500D71A2C = {
 			isa = PBXGroup;
 			children = (
+				8BAA076E2DF1DDE500D71A2C /* Utilities */,
 				8BAA06EC2DEF27D500D71A2C /* SubscriptionManager */,
 				8BAA07002DEF27D700D71A2C /* SubscriptionManagerTests */,
 				8BAA070A2DEF27D700D71A2C /* SubscriptionManagerUITests */,
@@ -115,6 +132,10 @@
 		8BAA07362DEF2CF300D71A2C /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				8BAA076A2DF1DD8E00D71A2C /* ExchangeRateHistoryView.swift */,
+				8BAA07662DF0A0B700D71A2C /* NotificationSettingsView.swift */,
+				8BAA07642DF0A0AD00D71A2C /* NotificationPermissionView.swift */,
+				8BAA07622DF0A0A000D71A2C /* DebugLogView.swift */,
 				8BAA07312DEF2CF300D71A2C /* AddEditSubscriptionView.swift */,
 				8BAA07332DEF2CF300D71A2C /* SettingsView.swift */,
 				8BAA07342DEF2CF300D71A2C /* SubscriptionDetailView.swift */,
@@ -135,9 +156,20 @@
 		8BAA074A2DEF2D7600D71A2C /* Services */ = {
 			isa = PBXGroup;
 			children = (
+				8BAA07682DF1DD7900D71A2C /* ExchangeRateService.swift */,
+				8BAA07602DF0A08600D71A2C /* NotificationManager.swift */,
+				8BAA075E2DF0A07200D71A2C /* AppLogger.swift */,
 				8BAA07492DEF2D7600D71A2C /* CoreDataManager.swift */,
 			);
 			path = Services;
+			sourceTree = "<group>";
+		};
+		8BAA076E2DF1DDE500D71A2C /* Utilities */ = {
+			isa = PBXGroup;
+			children = (
+				8BAA076D2DF1DDE500D71A2C /* CurrencyFormatter.swift */,
+			);
+			path = Utilities;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -285,11 +317,19 @@
 			buildActionMask = 2147483647;
 			files = (
 				8BAA07472DEF2D5A00D71A2C /* NotificationTiming.swift in Sources */,
+				8BAA07632DF0A0A000D71A2C /* DebugLogView.swift in Sources */,
+				8BAA076B2DF1DD8E00D71A2C /* ExchangeRateHistoryView.swift in Sources */,
 				8BAA07482DEF2D5A00D71A2C /* SubscriptionCycle.swift in Sources */,
+				8BAA07692DF1DD7900D71A2C /* ExchangeRateService.swift in Sources */,
+				8BAA076F2DF1DDE500D71A2C /* CurrencyFormatter.swift in Sources */,
 				8BAA07372DEF2CF300D71A2C /* SettingsView.swift in Sources */,
+				8BAA07612DF0A08600D71A2C /* NotificationManager.swift in Sources */,
 				8BAA07382DEF2CF300D71A2C /* SubscriptionDetailView.swift in Sources */,
+				8BAA07672DF0A0B700D71A2C /* NotificationSettingsView.swift in Sources */,
 				8BAA07392DEF2CF300D71A2C /* SubscriptionListView.swift in Sources */,
+				8BAA07652DF0A0AD00D71A2C /* NotificationPermissionView.swift in Sources */,
 				8BAA073A2DEF2CF300D71A2C /* AddEditSubscriptionView.swift in Sources */,
+				8BAA075F2DF0A07300D71A2C /* AppLogger.swift in Sources */,
 				8BAA074B2DEF2D7600D71A2C /* CoreDataManager.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -448,9 +488,11 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = SubscriptionManager/SubscriptionManager.entitlements;
+				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = G8DUL53CEY;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
@@ -462,6 +504,7 @@
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.morisatoru.SubscriptionManager;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				REGISTER_APP_GROUPS = YES;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
@@ -474,9 +517,11 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = SubscriptionManager/SubscriptionManager.entitlements;
+				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = G8DUL53CEY;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
@@ -488,6 +533,7 @@
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.morisatoru.SubscriptionManager;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				REGISTER_APP_GROUPS = YES;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
