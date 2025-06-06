@@ -10,8 +10,11 @@ struct ContentView: View {
                 Label("サブスクリプション", systemImage: "creditcard.circle")
                     .tag(0)
                 
-                Label("設定", systemImage: "gear")
+                Label("分析", systemImage: "chart.bar.xaxis")
                     .tag(1)
+                
+                Label("設定", systemImage: "gear")
+                    .tag(2)
             }
             .navigationSplitViewColumnWidth(min: 200, ideal: 250)
             .listStyle(SidebarListStyle())
@@ -20,12 +23,16 @@ struct ContentView: View {
             case 0:
                 SubscriptionListView()
             case 1:
+                AnalyticsView()
+            case 2:
                 SettingsView()
             default:
                 Text("選択してください")
                     .foregroundColor(.secondary)
             }
         }
+        .errorHandling()
+        .performanceMeasured("ContentView")
     }
 }
 

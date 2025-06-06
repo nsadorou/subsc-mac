@@ -11,10 +11,62 @@ struct SubscriptionListView: View {
     @State private var showingAddSheet = false
     @State private var selection: Set<UUID> = []
     @State private var editingSubscription: Subscription?
+    @State private var searchText = ""
+    @State private var selectedPaymentMethod: String = "すべて"
+    @State private var selectedCurrency: String = "すべて"
+    @State private var selectedCycle: String = "すべて"
+    @State private var minAmount: String = ""
+    @State private var maxAmount: String = ""
+    @State private var showingFilterSheet = false
     
-    // 合計金額の計算（為替レート考慮）
+    // フィルタリングされたサブスクリプション
+    var filteredSubscriptions: [Subscription] {
+        let filtered = subscriptions.filter { subscription in
+            // 検索テキストフィルタ
+            let matchesSearch = searchText.isEmpty || 
+                (subscription.serviceName?.localizedCaseInsensitiveContains(searchText) == true) ||
+                (subscription.notes?.localizedCaseInsensitiveContains(searchText) == true)
+            
+            // 支払い方法フィルタ
+            let matchesPaymentMethod = selectedPaymentMethod == "すべて" || 
+                subscription.paymentMethod == selectedPaymentMethod
+            
+            // 通貨フィルタ
+            let matchesCurrency = selectedCurrency == "すべて" || 
+                subscription.currency == selectedCurrency
+            
+            // サイクルフィルタ
+            let matchesCycle = selectedCycle == "すべて" || 
+                (selectedCycle == "月額" && subscription.cycle == 0) ||
+                (selectedCycle == "年額" && subscription.cycle == 1)
+            
+            // 金額範囲フィルタ
+            let matchesAmountRange: Bool = {
+                guard let amount = subscription.amount?.doubleValue else { return true }
+                
+                // 為替レート考慮
+                let jpyAmount: Double
+                if subscription.currency == "USD", let rate = subscription.exchangeRate?.doubleValue {
+                    jpyAmount = amount * rate
+                } else {
+                    jpyAmount = amount
+                }
+                
+                let minAmountValue = Double(minAmount) ?? 0
+                let maxAmountValue = Double(maxAmount) ?? Double.greatestFiniteMagnitude
+                
+                return jpyAmount >= minAmountValue && jpyAmount <= maxAmountValue
+            }()
+            
+            return matchesSearch && matchesPaymentMethod && matchesCurrency && matchesCycle && matchesAmountRange
+        }
+        
+        return Array(filtered)
+    }
+    
+    // 合計金額の計算（フィルタリング後）
     var monthlyTotal: Int {
-        subscriptions
+        filteredSubscriptions
             .filter { $0.cycle == 0 && $0.isActive }
             .reduce(0) { total, subscription in
                 let amount = subscription.amount?.doubleValue ?? 0
@@ -27,7 +79,7 @@ struct SubscriptionListView: View {
     }
     
     var yearlyTotal: Int {
-        subscriptions
+        filteredSubscriptions
             .filter { $0.cycle == 1 && $0.isActive }
             .reduce(0) { total, subscription in
                 let amount = subscription.amount?.doubleValue ?? 0
@@ -37,6 +89,17 @@ struct SubscriptionListView: View {
                     return total + Int(amount)
                 }
             }
+    }
+    
+    // フィルタ用のオプション
+    var paymentMethods: [String] {
+        let methods = Set(subscriptions.compactMap { $0.paymentMethod })
+        return ["すべて"] + Array(methods).sorted()
+    }
+    
+    var currencies: [String] {
+        let currencies = Set(subscriptions.compactMap { $0.currency })
+        return ["すべて"] + Array(currencies).sorted()
     }
     
     var totalPerMonth: Int {
@@ -49,6 +112,7 @@ struct SubscriptionListView: View {
     
     var body: some View {
         VStack(spacing: 0) {
+            // ヘッダー
             HStack {
                 Text("サブスクリプション一覧")
                     .font(.largeTitle)
@@ -94,9 +158,73 @@ struct SubscriptionListView: View {
                 Button(action: { showingAddSheet = true }) {
                     Label("追加", systemImage: "plus.circle.fill")
                 }
-                .buttonStyle(.borderedProminent)
+                .buttonStyle(PrimaryButtonStyle())
+                .scaleButtonStyle()
             }
             .padding()
+            
+            // 検索・フィルタバー
+            HStack(spacing: 12) {
+                // 検索フィールド
+                HStack {
+                    Image(systemName: "magnifyingglass")
+                        .foregroundColor(.secondary)
+                    TextField("サービス名や備考で検索...", text: $searchText)
+                        .textFieldStyle(.plain)
+                }
+                .padding(.horizontal, 8)
+                .padding(.vertical, 6)
+                .background(Color(NSColor.controlBackgroundColor))
+                .cornerRadius(6)
+                .frame(maxWidth: 300)
+                
+                // クイックフィルタ
+                Picker("サイクル", selection: $selectedCycle) {
+                    Text("すべて").tag("すべて")
+                    Text("月額").tag("月額")
+                    Text("年額").tag("年額")
+                }
+                .pickerStyle(.segmented)
+                .frame(width: 120)
+                
+                // フィルタボタン
+                Button(action: { showingFilterSheet = true }) {
+                    HStack(spacing: 4) {
+                        Image(systemName: "line.3.horizontal.decrease.circle")
+                        Text("フィルタ")
+                    }
+                }
+                .buttonStyle(SecondaryButtonStyle())
+                .scaleButtonStyle()
+                
+                // フィルタ表示数
+                if !searchText.isEmpty || selectedPaymentMethod != "すべて" || 
+                   selectedCurrency != "すべて" || selectedCycle != "すべて" ||
+                   !minAmount.isEmpty || !maxAmount.isEmpty {
+                    Text("\(filteredSubscriptions.count)/\(subscriptions.count)")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 4)
+                        .background(Color.blue.opacity(0.1))
+                        .cornerRadius(4)
+                }
+                
+                Spacer()
+                
+                // フィルタリセット
+                if !searchText.isEmpty || selectedPaymentMethod != "すべて" || 
+                   selectedCurrency != "すべて" || selectedCycle != "すべて" ||
+                   !minAmount.isEmpty || !maxAmount.isEmpty {
+                    Button("リセット") {
+                        resetFilters()
+                    }
+                    .buttonStyle(.bordered)
+                    .foregroundColor(.orange)
+                }
+            }
+            .padding(.horizontal)
+            .padding(.bottom, 8)
             
             if subscriptions.isEmpty {
                 VStack(spacing: 20) {
@@ -166,9 +294,10 @@ struct SubscriptionListView: View {
                 Divider()
                 
                 List(selection: $selection) {
-                    ForEach(subscriptions) { subscription in
+                    ForEach(filteredSubscriptions, id: \.id) { subscription in
                         SubscriptionRow(subscription: subscription, editingSubscription: $editingSubscription)
                             .tag(subscription.id)
+                            .slideIn(from: .left)
                             .contextMenu {
                                 Button(action: {
                                     editingSubscription = subscription
@@ -205,6 +334,25 @@ struct SubscriptionListView: View {
         .sheet(item: $editingSubscription) { subscription in
             AddEditSubscriptionView(subscription: subscription)
         }
+        .sheet(isPresented: $showingFilterSheet) {
+            FilterSheet(
+                selectedPaymentMethod: $selectedPaymentMethod,
+                selectedCurrency: $selectedCurrency,
+                minAmount: $minAmount,
+                maxAmount: $maxAmount,
+                paymentMethods: paymentMethods,
+                currencies: currencies
+            )
+        }
+    }
+    
+    private func resetFilters() {
+        searchText = ""
+        selectedPaymentMethod = "すべて"
+        selectedCurrency = "すべて"
+        selectedCycle = "すべて"
+        minAmount = ""
+        maxAmount = ""
     }
     
     private func deleteSubscriptions(offsets: IndexSet) {
@@ -336,15 +484,18 @@ struct SubscriptionRow: View {
                 
                 // 展開/折りたたみボタン
                 Button(action: {
-                    withAnimation(.easeInOut(duration: 0.2)) {
+                    withAnimation(AnimationConstants.cardExpand) {
                         isExpanded.toggle()
                     }
                 }) {
                     Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
                         .foregroundColor(.secondary)
                         .font(.caption)
+                        .rotationEffect(.degrees(isExpanded ? 180 : 0))
+                        .animation(AnimationConstants.quickSpring, value: isExpanded)
                 }
                 .buttonStyle(.plain)
+                .scaleButtonStyle()
             }
             .padding(.vertical, 8)
             .padding(.horizontal, 4)
@@ -412,6 +563,10 @@ struct SubscriptionRow: View {
                 }
                 .padding(.horizontal, 4)
                 .padding(.bottom, 8)
+                .transition(.asymmetric(
+                    insertion: .opacity.combined(with: .move(edge: .top)),
+                    removal: .opacity.combined(with: .move(edge: .top))
+                ))
             }
         }
         .contentShape(Rectangle())
@@ -425,6 +580,114 @@ struct SubscriptionRow: View {
         case 3: return "2週間前"
         default: return ""
         }
+    }
+}
+
+struct FilterSheet: View {
+    @Environment(\.dismiss) private var dismiss
+    @Binding var selectedPaymentMethod: String
+    @Binding var selectedCurrency: String
+    @Binding var minAmount: String
+    @Binding var maxAmount: String
+    
+    let paymentMethods: [String]
+    let currencies: [String]
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 20) {
+            // ヘッダー
+            HStack {
+                Text("詳細フィルタ")
+                    .font(.title2)
+                    .fontWeight(.bold)
+                
+                Spacer()
+                
+                Button("完了") {
+                    dismiss()
+                }
+                .buttonStyle(.borderedProminent)
+                .keyboardShortcut(.return)
+            }
+            
+            // 支払い方法フィルタ
+            VStack(alignment: .leading, spacing: 8) {
+                Text("支払い方法")
+                    .font(.headline)
+                
+                Picker("支払い方法", selection: $selectedPaymentMethod) {
+                    ForEach(paymentMethods, id: \.self) { method in
+                        Text(method).tag(method)
+                    }
+                }
+                .pickerStyle(.menu)
+                .frame(maxWidth: 200, alignment: .leading)
+            }
+            
+            // 通貨フィルタ
+            VStack(alignment: .leading, spacing: 8) {
+                Text("通貨")
+                    .font(.headline)
+                
+                Picker("通貨", selection: $selectedCurrency) {
+                    ForEach(currencies, id: \.self) { currency in
+                        Text(currency).tag(currency)
+                    }
+                }
+                .pickerStyle(.segmented)
+                .frame(maxWidth: 200)
+            }
+            
+            // 金額範囲フィルタ
+            VStack(alignment: .leading, spacing: 8) {
+                Text("金額範囲（円）")
+                    .font(.headline)
+                
+                HStack(spacing: 12) {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("最小金額")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                        TextField("例: 1000", text: $minAmount)
+                            .textFieldStyle(.roundedBorder)
+                            .frame(width: 100)
+                    }
+                    
+                    Text("〜")
+                        .foregroundColor(.secondary)
+                    
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("最大金額")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                        TextField("例: 5000", text: $maxAmount)
+                            .textFieldStyle(.roundedBorder)
+                            .frame(width: 100)
+                    }
+                }
+            }
+            
+            Divider()
+            
+            // リセットボタン
+            HStack {
+                Button("すべてリセット") {
+                    selectedPaymentMethod = "すべて"
+                    selectedCurrency = "すべて"
+                    minAmount = ""
+                    maxAmount = ""
+                }
+                .buttonStyle(.bordered)
+                .foregroundColor(.orange)
+                
+                Spacer()
+            }
+            
+            Spacer()
+        }
+        .padding()
+        .frame(width: 400, height: 350)
+        .background(Color(NSColor.windowBackgroundColor))
     }
 }
 
