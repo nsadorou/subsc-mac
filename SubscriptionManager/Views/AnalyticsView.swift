@@ -7,7 +7,6 @@
 
 import SwiftUI
 import CoreData
-import Charts
 
 struct AnalyticsView: View {
     @Environment(\.managedObjectContext) private var viewContext

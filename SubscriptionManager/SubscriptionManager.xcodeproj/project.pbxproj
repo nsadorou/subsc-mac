@@ -22,6 +22,10 @@
 		8BAA07692DF1DD7900D71A2C /* ExchangeRateService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8BAA07682DF1DD7900D71A2C /* ExchangeRateService.swift */; };
 		8BAA076B2DF1DD8E00D71A2C /* ExchangeRateHistoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8BAA076A2DF1DD8E00D71A2C /* ExchangeRateHistoryView.swift */; };
 		8BAA076F2DF1DDE500D71A2C /* CurrencyFormatter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8BAA076D2DF1DDE500D71A2C /* CurrencyFormatter.swift */; };
+		8BAA07722DF327EC00D71A2C /* DataExportService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8BAA07712DF327EC00D71A2C /* DataExportService.swift */; };
+		8BAA07742DF3280300D71A2C /* AnimationHelpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8BAA07732DF3280300D71A2C /* AnimationHelpers.swift */; };
+		8BAA07762DF3280C00D71A2C /* ErrorHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8BAA07752DF3280C00D71A2C /* ErrorHandler.swift */; };
+		8BAA07782DF3281F00D71A2C /* AnalyticsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8BAA07772DF3281F00D71A2C /* AnalyticsView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -60,6 +64,10 @@
 		8BAA07682DF1DD7900D71A2C /* ExchangeRateService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExchangeRateService.swift; sourceTree = "<group>"; };
 		8BAA076A2DF1DD8E00D71A2C /* ExchangeRateHistoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExchangeRateHistoryView.swift; sourceTree = "<group>"; };
 		8BAA076D2DF1DDE500D71A2C /* CurrencyFormatter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CurrencyFormatter.swift; sourceTree = "<group>"; };
+		8BAA07712DF327EC00D71A2C /* DataExportService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DataExportService.swift; sourceTree = "<group>"; };
+		8BAA07732DF3280300D71A2C /* AnimationHelpers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnimationHelpers.swift; sourceTree = "<group>"; };
+		8BAA07752DF3280C00D71A2C /* ErrorHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ErrorHandler.swift; sourceTree = "<group>"; };
+		8BAA07772DF3281F00D71A2C /* AnalyticsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalyticsView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -132,6 +140,7 @@
 		8BAA07362DEF2CF300D71A2C /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				8BAA07772DF3281F00D71A2C /* AnalyticsView.swift */,
 				8BAA076A2DF1DD8E00D71A2C /* ExchangeRateHistoryView.swift */,
 				8BAA07662DF0A0B700D71A2C /* NotificationSettingsView.swift */,
 				8BAA07642DF0A0AD00D71A2C /* NotificationPermissionView.swift */,
@@ -156,6 +165,7 @@
 		8BAA074A2DEF2D7600D71A2C /* Services */ = {
 			isa = PBXGroup;
 			children = (
+				8BAA07712DF327EC00D71A2C /* DataExportService.swift */,
 				8BAA07682DF1DD7900D71A2C /* ExchangeRateService.swift */,
 				8BAA07602DF0A08600D71A2C /* NotificationManager.swift */,
 				8BAA075E2DF0A07200D71A2C /* AppLogger.swift */,
@@ -167,6 +177,8 @@
 		8BAA076E2DF1DDE500D71A2C /* Utilities */ = {
 			isa = PBXGroup;
 			children = (
+				8BAA07752DF3280C00D71A2C /* ErrorHandler.swift */,
+				8BAA07732DF3280300D71A2C /* AnimationHelpers.swift */,
 				8BAA076D2DF1DDE500D71A2C /* CurrencyFormatter.swift */,
 			);
 			path = Utilities;
@@ -320,12 +332,16 @@
 				8BAA07632DF0A0A000D71A2C /* DebugLogView.swift in Sources */,
 				8BAA076B2DF1DD8E00D71A2C /* ExchangeRateHistoryView.swift in Sources */,
 				8BAA07482DEF2D5A00D71A2C /* SubscriptionCycle.swift in Sources */,
+				8BAA07782DF3281F00D71A2C /* AnalyticsView.swift in Sources */,
 				8BAA07692DF1DD7900D71A2C /* ExchangeRateService.swift in Sources */,
 				8BAA076F2DF1DDE500D71A2C /* CurrencyFormatter.swift in Sources */,
 				8BAA07372DEF2CF300D71A2C /* SettingsView.swift in Sources */,
 				8BAA07612DF0A08600D71A2C /* NotificationManager.swift in Sources */,
 				8BAA07382DEF2CF300D71A2C /* SubscriptionDetailView.swift in Sources */,
+				8BAA07742DF3280300D71A2C /* AnimationHelpers.swift in Sources */,
+				8BAA07722DF327EC00D71A2C /* DataExportService.swift in Sources */,
 				8BAA07672DF0A0B700D71A2C /* NotificationSettingsView.swift in Sources */,
+				8BAA07762DF3280C00D71A2C /* ErrorHandler.swift in Sources */,
 				8BAA07392DEF2CF300D71A2C /* SubscriptionListView.swift in Sources */,
 				8BAA07652DF0A0AD00D71A2C /* NotificationPermissionView.swift in Sources */,
 				8BAA073A2DEF2CF300D71A2C /* AddEditSubscriptionView.swift in Sources */,
