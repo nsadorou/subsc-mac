@@ -423,9 +423,11 @@ struct SubscriptionRow: View {
                         .font(.headline)
                     
                     HStack(spacing: 8) {
-                        Label(subscription.paymentMethod ?? "Unknown", systemImage: "creditcard")
+                        let paymentMethod = subscription.paymentMethod ?? "Unknown"
+                        let iconInfo = PaymentMethodIcon.getIconAndColor(for: paymentMethod)
+                        Label(paymentMethod, systemImage: iconInfo.icon)
                             .font(.caption)
-                            .foregroundColor(.secondary)
+                            .foregroundColor(iconInfo.color)
                         
                         if let timings = subscription.notificationTimings, !timings.isEmpty {
                             Label("\(timings.count)件の通知", systemImage: "bell.fill")

@@ -13,6 +13,7 @@ struct SettingsView: View {
     @State private var showingDeleteConfirmation = false
     @State private var exportMessage = ""
     @State private var showingExportResult = false
+    @State private var showingIconGenerator = false
     
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -70,6 +71,10 @@ struct SettingsView: View {
                         DebugLogView()
                     }
                     
+                    Button("アプリアイコン生成") {
+                        showingIconGenerator = true
+                    }
+                    
                     BackgroundTaskStatusView(backgroundTaskManager: BackgroundTaskManager.shared)
                 }
                 
@@ -92,6 +97,9 @@ struct SettingsView: View {
                 exportMessage: $exportMessage,
                 showingExportResult: $showingExportResult
             )
+        }
+        .sheet(isPresented: $showingIconGenerator) {
+            AppIconExporter()
         }
         .fileImporter(
             isPresented: $showingImportPicker,

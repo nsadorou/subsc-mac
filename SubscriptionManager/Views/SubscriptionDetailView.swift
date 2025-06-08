@@ -27,9 +27,15 @@ struct SubscriptionDetailView: View {
                             .font(.largeTitle)
                             .fontWeight(.bold)
                         
-                        Text(subscription.paymentMethod ?? "Unknown")
-                            .font(.title3)
-                            .foregroundColor(.secondary)
+                        HStack {
+                            let paymentMethod = subscription.paymentMethod ?? "Unknown"
+                            let iconInfo = PaymentMethodIcon.getIconAndColor(for: paymentMethod)
+                            Image(systemName: iconInfo.icon)
+                                .foregroundColor(iconInfo.color)
+                            Text(paymentMethod)
+                                .font(.title3)
+                                .foregroundColor(.secondary)
+                        }
                     }
                     
                     Spacer()

@@ -21,11 +21,17 @@ struct ContentView: View {
         } detail: {
             switch selectedTab {
             case 0:
-                SubscriptionListView()
+                NavigationStack {
+                    SubscriptionListView()
+                }
             case 1:
-                AnalyticsView()
+                NavigationStack {
+                    AnalyticsView()
+                }
             case 2:
-                SettingsView()
+                NavigationStack {
+                    SettingsView()
+                }
             default:
                 Text("選択してください")
                     .foregroundColor(.secondary)

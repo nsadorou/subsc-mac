@@ -26,6 +26,9 @@
 		8BAA07742DF3280300D71A2C /* AnimationHelpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8BAA07732DF3280300D71A2C /* AnimationHelpers.swift */; };
 		8BAA07762DF3280C00D71A2C /* ErrorHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8BAA07752DF3280C00D71A2C /* ErrorHandler.swift */; };
 		8BAA07782DF3281F00D71A2C /* AnalyticsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8BAA07772DF3281F00D71A2C /* AnalyticsView.swift */; };
+		8BC614132DF53F2C0023E3F3 /* PaymentMethodHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8BC614122DF53F2C0023E3F3 /* PaymentMethodHelper.swift */; };
+		8BC614162DF5D14C0023E3F3 /* AppIconGenerator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8BC614152DF5D14C0023E3F3 /* AppIconGenerator.swift */; };
+		8BC614172DF5D14C0023E3F3 /* AppIconExporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8BC614142DF5D14C0023E3F3 /* AppIconExporter.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -68,6 +71,9 @@
 		8BAA07732DF3280300D71A2C /* AnimationHelpers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnimationHelpers.swift; sourceTree = "<group>"; };
 		8BAA07752DF3280C00D71A2C /* ErrorHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ErrorHandler.swift; sourceTree = "<group>"; };
 		8BAA07772DF3281F00D71A2C /* AnalyticsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalyticsView.swift; sourceTree = "<group>"; };
+		8BC614122DF53F2C0023E3F3 /* PaymentMethodHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PaymentMethodHelper.swift; sourceTree = "<group>"; };
+		8BC614142DF5D14C0023E3F3 /* AppIconExporter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppIconExporter.swift; sourceTree = "<group>"; };
+		8BC614152DF5D14C0023E3F3 /* AppIconGenerator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppIconGenerator.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -177,6 +183,9 @@
 		8BAA076E2DF1DDE500D71A2C /* Utilities */ = {
 			isa = PBXGroup;
 			children = (
+				8BC614142DF5D14C0023E3F3 /* AppIconExporter.swift */,
+				8BC614152DF5D14C0023E3F3 /* AppIconGenerator.swift */,
+				8BC614122DF53F2C0023E3F3 /* PaymentMethodHelper.swift */,
 				8BAA07752DF3280C00D71A2C /* ErrorHandler.swift */,
 				8BAA07732DF3280300D71A2C /* AnimationHelpers.swift */,
 				8BAA076D2DF1DDE500D71A2C /* CurrencyFormatter.swift */,
@@ -343,8 +352,11 @@
 				8BAA07672DF0A0B700D71A2C /* NotificationSettingsView.swift in Sources */,
 				8BAA07762DF3280C00D71A2C /* ErrorHandler.swift in Sources */,
 				8BAA07392DEF2CF300D71A2C /* SubscriptionListView.swift in Sources */,
+				8BC614132DF53F2C0023E3F3 /* PaymentMethodHelper.swift in Sources */,
 				8BAA07652DF0A0AD00D71A2C /* NotificationPermissionView.swift in Sources */,
 				8BAA073A2DEF2CF300D71A2C /* AddEditSubscriptionView.swift in Sources */,
+				8BC614162DF5D14C0023E3F3 /* AppIconGenerator.swift in Sources */,
+				8BC614172DF5D14C0023E3F3 /* AppIconExporter.swift in Sources */,
 				8BAA075F2DF0A07300D71A2C /* AppLogger.swift in Sources */,
 				8BAA074B2DEF2D7600D71A2C /* CoreDataManager.swift in Sources */,
 			);

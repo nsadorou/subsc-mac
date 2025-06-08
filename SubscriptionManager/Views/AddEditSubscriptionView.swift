@@ -25,7 +25,7 @@ struct AddEditSubscriptionView: View {
     let isEditMode: Bool
     
     let currencies = ["JPY", "USD"]
-    let paymentMethods = ["クレジットカード", "デビットカード", "銀行振替", "PayPal", "その他"]
+    // let paymentMethods = ["クレジットカード", "デビットカード", "銀行振替", "PayPal", "その他"] // 削除予定
     let cycles = ["月額", "年額"]
     let notificationTimingOptions = [
         (0, "1日前"),
@@ -152,13 +152,7 @@ struct AddEditSubscriptionView: View {
                     VStack(alignment: .leading, spacing: 8) {
                         Text("支払い方法")
                             .font(.headline)
-                        Picker("", selection: $paymentMethod) {
-                            ForEach(paymentMethods, id: \.self) { method in
-                                Text(method)
-                            }
-                        }
-                        .pickerStyle(.menu)
-                        .labelsHidden()
+                        SmartPaymentMethodField(paymentMethod: $paymentMethod)
                     }
                     
                     // 契約開始日

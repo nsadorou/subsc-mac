@@ -374,6 +374,13 @@ struct PieChartView: View {
                             Circle()
                                 .fill(Color.accentColor.opacity(0.8 - Double(index) * 0.15))
                                 .frame(width: 12, height: 12)
+                            
+                            let iconInfo = PaymentMethodIcon.getIconAndColor(for: item.label)
+                            Image(systemName: iconInfo.icon)
+                                .font(.caption)
+                                .foregroundColor(iconInfo.color)
+                                .frame(width: 16)
+                            
                             Text(item.label)
                                 .font(.caption)
                             Spacer()
