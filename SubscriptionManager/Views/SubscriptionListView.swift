@@ -19,6 +19,10 @@ struct SubscriptionListView: View {
     @State private var maxAmount: String = ""
     @State private var showingFilterSheet = false
     
+    // ソート関連の状態
+    @AppStorage("preferredSortOption") private var selectedSortOption: String = SortOption.nextRenewal.rawValue
+    @AppStorage("preferredSortAscending") private var sortAscending: Bool = true
+    
     // フィルタリングされたサブスクリプション
     var filteredSubscriptions: [Subscription] {
         let filtered = subscriptions.filter { subscription in
@@ -62,6 +66,75 @@ struct SubscriptionListView: View {
         }
         
         return Array(filtered)
+    }
+    
+    // ソート済みのサブスクリプション
+    var sortedSubscriptions: [Subscription] {
+        let currentSort = SortOption(rawValue: selectedSortOption) ?? .nextRenewal
+        let filtered = Array(filteredSubscriptions)
+        
+        return filtered.sorted { (sub1, sub2) in
+            switch currentSort {
+            case .nextRenewal:
+                let date1 = calculateNextRenewalDate(for: sub1)
+                let date2 = calculateNextRenewalDate(for: sub2)
+                
+                // nilチェック（非アクティブなものは最後に）
+                if date1 == nil && date2 == nil { return false }
+                if date1 == nil { return false }
+                if date2 == nil { return true }
+                
+                return sortAscending ? date1! < date2! : date1! > date2!
+                
+            case .amount:
+                let amount1 = calculateJPYAmount(for: sub1)
+                let amount2 = calculateJPYAmount(for: sub2)
+                return sortAscending ? amount1 < amount2 : amount1 > amount2
+                
+            case .serviceName:
+                let name1 = sub1.serviceName ?? ""
+                let name2 = sub2.serviceName ?? ""
+                return sortAscending ? name1 < name2 : name1 > name2
+                
+            case .recentlyAdded:
+                let date1 = sub1.createdAt ?? Date.distantPast
+                let date2 = sub2.createdAt ?? Date.distantPast
+                return sortAscending ? date1 < date2 : date1 > date2
+            }
+        }
+    }
+    
+    // 次回更新日を計算（キャッシュなし版）
+    private func calculateNextRenewalDate(for subscription: Subscription) -> Date? {
+        guard subscription.isActive,
+              let startDate = subscription.startDate else { return nil }
+        
+        let calendar = Calendar.current
+        var dateComponents = DateComponents()
+        
+        if subscription.cycle == 0 { // monthly
+            dateComponents.month = 1
+        } else { // yearly
+            dateComponents.year = 1
+        }
+        
+        var nextDate = startDate
+        while nextDate <= Date() {
+            nextDate = calendar.date(byAdding: dateComponents, to: nextDate) ?? nextDate
+        }
+        
+        return nextDate
+    }
+    
+    // 日本円換算金額を計算
+    private func calculateJPYAmount(for subscription: Subscription) -> Double {
+        let amount = subscription.amount?.doubleValue ?? 0
+        
+        if subscription.currency == "USD", let rate = subscription.exchangeRate?.doubleValue {
+            return amount * rate
+        } else {
+            return amount
+        }
     }
     
     // 合計金額の計算（フィルタリング後）
@@ -187,6 +260,40 @@ struct SubscriptionListView: View {
                 .pickerStyle(.segmented)
                 .frame(width: 120)
                 
+                // ソートメニュー
+                Menu {
+                    ForEach(SortOption.allCases, id: \.self) { option in
+                        Button(action: {
+                            if selectedSortOption == option.rawValue {
+                                sortAscending.toggle()
+                            } else {
+                                selectedSortOption = option.rawValue
+                                sortAscending = option.defaultAscending
+                            }
+                        }) {
+                            HStack {
+                                Label(option.rawValue, systemImage: option.icon)
+                                if selectedSortOption == option.rawValue {
+                                    Spacer()
+                                    Image(systemName: sortAscending ? "arrow.up" : "arrow.down")
+                                        .foregroundColor(.accentColor)
+                                }
+                            }
+                        }
+                    }
+                } label: {
+                    HStack(spacing: 4) {
+                        if let currentSort = SortOption(rawValue: selectedSortOption) {
+                            Image(systemName: currentSort.icon)
+                        }
+                        Text("並び替え")
+                        Image(systemName: sortAscending ? "chevron.up" : "chevron.down")
+                            .font(.caption2)
+                    }
+                }
+                .menuStyle(.borderlessButton)
+                .fixedSize()
+                
                 // フィルタボタン
                 Button(action: { showingFilterSheet = true }) {
                     HStack(spacing: 4) {
@@ -294,10 +401,9 @@ struct SubscriptionListView: View {
                 Divider()
                 
                 List(selection: $selection) {
-                    ForEach(filteredSubscriptions, id: \.id) { subscription in
+                    ForEach(sortedSubscriptions, id: \.objectID) { subscription in
                         SubscriptionRow(subscription: subscription, editingSubscription: $editingSubscription)
                             .tag(subscription.id)
-                            .slideIn(from: .left)
                             .contextMenu {
                                 Button(action: {
                                     editingSubscription = subscription

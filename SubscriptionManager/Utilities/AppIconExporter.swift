@@ -20,175 +20,80 @@ struct AppIconDesign1: View {
         size * 0.2195 // macOS Big Sur標準の角丸比率
     }
     
-    var cardWidth: CGFloat { size * 0.39 }
-    var cardHeight: CGFloat { size * 0.25 }
-    var cardCornerRadius: CGFloat { size * 0.047 }
-    var cardSpacing: CGFloat { size * 0.012 }
+    var circleSize: CGFloat { size * 0.75 } // 中央の円のサイズ
+    var cardWidth: CGFloat { size * 0.1875 }
+    var cardHeight: CGFloat { size * 0.125 }
+    var cardCornerRadius: CGFloat { size * 0.016 }
     
-    var calendarWidth: CGFloat { size * 0.31 }
-    var calendarHeight: CGFloat { size * 0.28 }
-    var calendarCornerRadius: CGFloat { size * 0.031 }
+    var calendarWidth: CGFloat { size * 0.156 }
+    var calendarHeight: CGFloat { size * 0.14 }
+    var calendarCornerRadius: CGFloat { size * 0.008 }
     
-    var bellSize: CGFloat { size * 0.156 }
-    var badgeSize: CGFloat { size * 0.063 }
+    var bellSize: CGFloat { size * 0.094 }
     
     var body: some View {
         ZStack {
-            // 背景のグラデーション
-            RoundedRectangle(cornerRadius: cornerRadius)
+            // 中央の青い円
+            Circle()
                 .fill(
                     LinearGradient(
                         gradient: Gradient(colors: [
-                            Color(red: 0.2, green: 0.4, blue: 0.9),  // 濃い青
-                            Color(red: 0.3, green: 0.6, blue: 1.0)   // 明るい青
+                            Color(red: 0.4, green: 0.6, blue: 1.0),
+                            Color(red: 0.2, green: 0.4, blue: 0.9)
                         ]),
                         startPoint: .topLeading,
                         endPoint: .bottomTrailing
                     )
                 )
+                .frame(width: circleSize, height: circleSize)
             
-            VStack(spacing: size * 0.059) {
-                // クレジットカードスタック
-                ZStack {
-                    // 背面のカード（影）
-                    RoundedRectangle(cornerRadius: cardCornerRadius)
-                        .fill(Color.black.opacity(0.2))
-                        .frame(width: cardWidth, height: cardHeight)
-                        .offset(x: cardSpacing * 2.67, y: cardSpacing * 2.67)
-                    
-                    // 背面のカード
-                    RoundedRectangle(cornerRadius: cardCornerRadius)
-                        .fill(Color.white.opacity(0.3))
-                        .frame(width: cardWidth, height: cardHeight)
-                        .offset(x: cardSpacing * 2, y: cardSpacing * 2)
-                    
-                    // 中間のカード
-                    RoundedRectangle(cornerRadius: cardCornerRadius)
-                        .fill(Color.white.opacity(0.5))
-                        .frame(width: cardWidth, height: cardHeight)
-                        .offset(x: cardSpacing, y: cardSpacing)
-                    
-                    // 前面のカード
-                    RoundedRectangle(cornerRadius: cardCornerRadius)
-                        .fill(Color.white)
-                        .frame(width: cardWidth, height: cardHeight)
-                        .shadow(color: Color.black.opacity(0.1), radius: size * 0.01, y: size * 0.005)
-                        .overlay(
-                            VStack(alignment: .leading, spacing: size * 0.016) {
-                                // カードチップ
-                                HStack {
-                                    RoundedRectangle(cornerRadius: size * 0.008)
-                                        .fill(
-                                            LinearGradient(
-                                                gradient: Gradient(colors: [Color.yellow, Color.orange]),
-                                                startPoint: .leading,
-                                                endPoint: .trailing
-                                            )
-                                        )
-                                        .frame(width: size * 0.078, height: size * 0.059)
-                                    Spacer()
-                                }
-                                
-                                Spacer()
-                                
-                                // カード番号（ドット）
-                                HStack(spacing: size * 0.023) {
-                                    ForEach(0..<4) { _ in
-                                        HStack(spacing: size * 0.008) {
-                                            ForEach(0..<4) { _ in
-                                                Circle()
-                                                    .fill(Color.gray.opacity(0.3))
-                                                    .frame(width: size * 0.012, height: size * 0.012)
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                            .padding(size * 0.031)
-                        )
-                }
-                
-                // カレンダーアイコン
-                ZStack {
-                    RoundedRectangle(cornerRadius: calendarCornerRadius)
-                        .fill(Color.white)
-                        .frame(width: calendarWidth, height: calendarHeight)
-                        .shadow(color: Color.black.opacity(0.15), radius: size * 0.015, y: size * 0.008)
-                    
-                    VStack(spacing: 0) {
-                        // カレンダーヘッダー
-                        RoundedRectangle(cornerRadius: calendarCornerRadius)
-                            .fill(Color.red)
-                            .frame(width: calendarWidth, height: size * 0.063)
-                            .overlay(
-                                HStack(spacing: size * 0.016) {
-                                    Circle()
-                                        .fill(Color.white.opacity(0.3))
-                                        .frame(width: size * 0.023, height: size * 0.023)
-                                    Circle()
-                                        .fill(Color.white.opacity(0.3))
-                                        .frame(width: size * 0.023, height: size * 0.023)
-                                }
-                            )
-                        
-                        // カレンダーグリッド
-                        VStack(spacing: 0) {
-                            // 曜日ヘッダー（小さいサイズでは省略）
-                            if size >= 64 {
-                                HStack(spacing: size * 0.012) {
-                                    ForEach(0..<7) { _ in
-                                        Rectangle()
-                                            .fill(Color.gray.opacity(0.2))
-                                            .frame(width: size * 0.031, height: size * 0.023)
-                                    }
-                                }
-                                .padding(.horizontal, size * 0.023)
-                                .padding(.top, size * 0.016)
-                            }
-                            
-                            // 日付グリッド
-                            VStack(spacing: size * 0.012) {
-                                ForEach(0..<(size >= 64 ? 4 : 3)) { row in
-                                    HStack(spacing: size * 0.012) {
-                                        ForEach(0..<7) { col in
-                                            let isToday = row == 2 && col == 3
-                                            Rectangle()
-                                                .fill(isToday ? Color.orange : Color.gray.opacity(0.1))
-                                                .frame(width: size * 0.031, height: size * 0.031)
-                                                .cornerRadius(size * 0.004)
-                                        }
-                                    }
-                                }
-                            }
-                            .padding(.horizontal, size * 0.023)
-                            .padding(.vertical, size * 0.016)
+            VStack(spacing: size * 0.023) {
+                // クレジットカード（シンプル）
+                RoundedRectangle(cornerRadius: cardCornerRadius)
+                    .fill(Color.white)
+                    .frame(width: cardWidth, height: cardHeight)
+                    .overlay(
+                        HStack(spacing: size * 0.016) {
+                            Circle()
+                                .fill(Color.orange)
+                                .frame(width: size * 0.023, height: size * 0.023)
+                            Circle()
+                                .fill(Color.red.opacity(0.8))
+                                .frame(width: size * 0.023, height: size * 0.023)
                         }
-                    }
-                }
+                        .offset(x: -size * 0.031, y: 0)
+                    )
                 
-                // 通知ベルアイコン
-                ZStack {
-                    // ベル本体
-                    Image(systemName: "bell.fill")
-                        .font(.system(size: bellSize, weight: .medium))
-                        .foregroundColor(.white)
-                        .shadow(color: Color.black.opacity(0.2), radius: size * 0.01, y: size * 0.005)
-                    
-                    // 通知バッジ（小さいサイズでは簡略化）
-                    if size >= 32 {
-                        Circle()
-                            .fill(Color.red)
-                            .frame(width: badgeSize, height: badgeSize)
-                            .overlay(
-                                Text(size >= 64 ? "!" : "")
-                                    .font(.system(size: size * 0.035, weight: .bold))
-                                    .foregroundColor(.white)
-                            )
-                            .offset(x: badgeSize, y: -badgeSize)
-                    }
-                }
+                // カレンダー（シンプル）
+                Rectangle()
+                    .fill(Color.white)
+                    .frame(width: calendarWidth, height: calendarHeight)
+                    .overlay(
+                        VStack(spacing: 0) {
+                            Rectangle()
+                                .fill(Color.red)
+                                .frame(height: size * 0.031)
+                            
+                            HStack(spacing: size * 0.008) {
+                                ForEach(0..<3) { _ in
+                                    VStack(spacing: size * 0.008) {
+                                        ForEach(0..<3) { _ in
+                                            Circle()
+                                                .fill(Color(red: 0.3, green: 0.5, blue: 0.9).opacity(0.3))
+                                                .frame(width: size * 0.016, height: size * 0.016)
+                                        }
+                                    }
+                                }
+                            }
+                            .padding(size * 0.016)
+                        }
+                    )
+                
+                // ベルアイコン
+                Image(systemName: "bell.fill")
+                    .font(.system(size: bellSize, weight: .medium))
+                    .foregroundColor(.white)
             }
-            .offset(y: -size * 0.02)
         }
         .frame(width: size, height: size)
     }

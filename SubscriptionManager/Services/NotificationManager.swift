@@ -76,11 +76,26 @@ class NotificationManager: NSObject, ObservableObject {
         // 既存の通知を削除
         removeAllNotifications(for: subscription)
         
+        // デバッグ情報
+        let serviceName = subscription.value(forKey: "serviceName") as? String ?? "Unknown"
+        let daysUntilRenewal = Calendar.current.dateComponents([.day], from: Date(), to: nextRenewalDate).day ?? 0
+        logger.info("Scheduling notifications for \(serviceName): renewal in \(daysUntilRenewal) days, timings: \(notificationTimings)")
+        
+        // 適切な通知のみをスケジュール
+        var scheduledCount = 0
         for timing in notificationTimings {
             if let notificationDate = calculateNotificationDate(renewalDate: nextRenewalDate, timing: timing, notificationTime: notificationTime) {
-                createNotification(for: subscription, at: notificationDate, timing: timing)
+                // 通知日が未来の場合のみスケジュール
+                if notificationDate > Date() {
+                    createNotification(for: subscription, at: notificationDate, timing: timing)
+                    scheduledCount += 1
+                } else {
+                    logger.info("Skipping past notification for \(serviceName): timing \(timing) would be on \(notificationDate)")
+                }
             }
         }
+        
+        logger.info("Scheduled \(scheduledCount) notifications for \(serviceName)")
     }
     
     func removeAllNotifications(for subscription: NSManagedObject) {
@@ -143,6 +158,17 @@ class NotificationManager: NSObject, ObservableObject {
               let amount = subscription.value(forKey: "amount") as? NSDecimalNumber,
               let currency = subscription.value(forKey: "currency") as? String else { return }
         
+        // 過去の日付の通知はスケジュールしない
+        if date <= Date() {
+            logger.info("Skipping past notification for \(serviceName): notification date = \(date), timing = \(timing)")
+            return
+        }
+        
+        // デバッグ用ログ
+        let renewalDate = calculateNextRenewalDate(for: subscription)
+        let daysUntilRenewal = Calendar.current.dateComponents([.day], from: Date(), to: renewalDate).day ?? 0
+        logger.info("Scheduling notification for \(serviceName): renewal date = \(renewalDate), days until renewal = \(daysUntilRenewal), notification timing = \(timing), notification date = \(date)")
+        
         let content = UNMutableNotificationContent()
         content.title = "サブスクリプション更新のお知らせ"
         
@@ -163,17 +189,19 @@ class NotificationManager: NSObject, ObservableObject {
         
         UNUserNotificationCenter.current().add(request) { error in
             if let error = error {
-                print("Error scheduling notification: \(error)")
+                self.logger.error("Error scheduling notification for \(serviceName): \(error)")
+            } else {
+                self.logger.info("Successfully scheduled notification for \(serviceName) with timing \(timing) (\(self.getTimingText(timing: timing)))")
             }
         }
     }
     
     private func getTimingText(timing: Int) -> String {
         switch timing {
-        case 0: return "明日"
-        case 1: return "3日後"
-        case 2: return "1週間後"
-        case 3: return "2週間後"
+        case 0: return "明日"      // 1日前の通知
+        case 1: return "3日後"     // 3日前の通知
+        case 2: return "1週間後"   // 1週間前の通知
+        case 3: return "2週間後"   // 2週間前の通知
         default: return "まもなく"
         }
     }

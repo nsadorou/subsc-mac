@@ -10,92 +10,72 @@ import SwiftUI
 struct AppIconView: View {
     var body: some View {
         ZStack {
-            // 背景のグラデーション
-            LinearGradient(
-                gradient: Gradient(colors: [
-                    Color(red: 0.2, green: 0.4, blue: 0.9),  // 濃い青
-                    Color(red: 0.3, green: 0.6, blue: 1.0)   // 明るい青
-                ]),
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            )
+            // 中央の青い円（少し大きく）
+            Circle()
+                .fill(
+                    LinearGradient(
+                        gradient: Gradient(colors: [
+                            Color(red: 0.4, green: 0.6, blue: 1.0),
+                            Color(red: 0.2, green: 0.4, blue: 0.9)
+                        ]),
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                )
+                .frame(width: 96, height: 96)
             
-            VStack(spacing: 8) {
-                // クレジットカードスタック
-                ZStack {
-                    // 背面のカード
-                    RoundedRectangle(cornerRadius: 6)
-                        .fill(Color.white.opacity(0.3))
-                        .frame(width: 50, height: 32)
-                        .offset(x: 4, y: 4)
-                    
-                    // 中間のカード
-                    RoundedRectangle(cornerRadius: 6)
-                        .fill(Color.white.opacity(0.5))
-                        .frame(width: 50, height: 32)
-                        .offset(x: 2, y: 2)
-                    
-                    // 前面のカード
-                    RoundedRectangle(cornerRadius: 6)
+            // メインコンテンツ
+            VStack(spacing: 3) {
+                // クレジットカード（シンプル化）
+                RoundedRectangle(cornerRadius: 2)
+                    .fill(Color.white)
+                    .frame(width: 24, height: 16)
+                    .overlay(
+                        HStack(spacing: 2) {
+                            Circle()
+                                .fill(Color.orange)
+                                .frame(width: 3, height: 3)
+                            Circle()
+                                .fill(Color.red.opacity(0.8))
+                                .frame(width: 3, height: 3)
+                        }
+                        .offset(x: -4, y: 0)
+                    )
+                
+                // カレンダー（シンプル化）
+                VStack(spacing: 0) {
+                    Rectangle()
                         .fill(Color.white)
-                        .frame(width: 50, height: 32)
+                        .frame(width: 20, height: 18)
                         .overlay(
-                            HStack(spacing: 4) {
-                                Circle()
-                                    .fill(Color.orange)
-                                    .frame(width: 8, height: 8)
-                                Circle()
-                                    .fill(Color.red.opacity(0.8))
-                                    .frame(width: 8, height: 8)
+                            VStack(spacing: 0) {
+                                Rectangle()
+                                    .fill(Color.red)
+                                    .frame(height: 4)
+                                
+                                HStack(spacing: 1) {
+                                    ForEach(0..<3) { _ in
+                                        VStack(spacing: 1) {
+                                            ForEach(0..<3) { _ in
+                                                Circle()
+                                                    .fill(Color.blue.opacity(0.3))
+                                                    .frame(width: 2, height: 2)
+                                            }
+                                        }
+                                    }
+                                }
+                                .padding(2)
                             }
-                            .offset(x: -8, y: 0)
                         )
                 }
                 
-                // カレンダーアイコン
-                ZStack {
-                    RoundedRectangle(cornerRadius: 4)
-                        .fill(Color.white)
-                        .frame(width: 40, height: 36)
-                    
-                    VStack(spacing: 0) {
-                        // カレンダーヘッダー
-                        Rectangle()
-                            .fill(Color.red)
-                            .frame(width: 40, height: 8)
-                        
-                        // カレンダーグリッド
-                        HStack(spacing: 2) {
-                            ForEach(0..<4) { _ in
-                                VStack(spacing: 2) {
-                                    ForEach(0..<3) { _ in
-                                        Rectangle()
-                                            .fill(Color.gray.opacity(0.3))
-                                            .frame(width: 6, height: 4)
-                                    }
-                                }
-                            }
-                        }
-                        .padding(4)
-                    }
-                }
-                
-                // 通知ベルアイコン
-                ZStack {
-                    Image(systemName: "bell.fill")
-                        .font(.system(size: 20))
-                        .foregroundColor(.white)
-                    
-                    // 通知バッジ
-                    Circle()
-                        .fill(Color.red)
-                        .frame(width: 8, height: 8)
-                        .offset(x: 8, y: -8)
-                }
+                // ベルアイコン
+                Image(systemName: "bell.fill")
+                    .font(.system(size: 12, weight: .medium))
+                    .foregroundColor(.white)
             }
         }
         .frame(width: 128, height: 128)
-        .cornerRadius(28) // macOS Big Sur以降のアイコンスタイル
     }
 }
 
